@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  ignition:
+    image: inductiveautomation/ignition:latest
+    container_name: ignition
+    ports:
+      - "8088:8088"
+      - "1884:1883"
+    environment:
+      ACCEPT_IGNITION_EULA: "Y"
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "1883:1883"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '-rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"'
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+
+  bridge:
+    build: ./bridge
+    container_name: sparkplug-bridge
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_MQTT_HOST: rabbitmq
+      RABBITMQ_MQTT_PORT: 1883
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+
+volumes:
+  rabbitmq-data:
