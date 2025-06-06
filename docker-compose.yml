@@ -8,7 +8,7 @@ services:
       - "1884:1883"
     environment:
       ACCEPT_IGNITION_EULA: "Y"
-
+      GATEWAY_JAVA_OPTS: "-Xms512m -Xmx4096m"
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
