@@ -19,6 +19,7 @@ var options = new MqttClientOptionsBuilder()
     .WithClientId("sparkplugb-bridge")
     .WithTcpServer(host, port)
     .WithCredentials(user, pass)
+    .WithProtocolVersion(MQTTnet.Formatter.MqttProtocolVersion.V500)
     .Build();
 
 var factory = new MqttFactory();
@@ -46,6 +47,7 @@ client.ApplicationMessageReceivedAsync += async e =>
             .WithTopic(unsTopic)
             .WithPayload(unsPayload)
             .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+	    .WithRetainFlag()
             .Build();
 
         await client.PublishAsync(unsMessage);
