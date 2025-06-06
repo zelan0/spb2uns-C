@@ -4,6 +4,12 @@ This project runs a complete environment for prototyping Sparkplug B to UNS (Uni
 
 Build the Docker container
 docker-compose build bridge
+docker-compose up rabbitmq ignition
+docker-compose up bridge
+
+
+docker-compose up --build bridge
+
 
 Start Docker containers
 docker-compose up rabbitmq ignition

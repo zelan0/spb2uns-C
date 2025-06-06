@@ -1,5 +1,3 @@
-using BridgePayload;
-using BridgePayload;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
@@ -7,8 +5,8 @@ using System.Text.Json;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Protocol;
-using SparkplugNet.VersionB;
 using Google.Protobuf;
+using BridgePayload; // The namespace from your generated SparkplugB.cs
 
 var host = Environment.GetEnvironmentVariable("RABBITMQ_MQTT_HOST") ?? "rabbitmq";
 var port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_MQTT_PORT") ?? "1883");
@@ -25,20 +23,37 @@ var options = new MqttClientOptionsBuilder()
 var factory = new MqttFactory();
 var client = factory.CreateMqttClient();
 
-
 client.ApplicationMessageReceivedAsync += async e =>
 {
     try
     {
         var payloadBytes = e.ApplicationMessage.PayloadSegment.ToArray();
 
+        // Attempt to parse as Sparkplug B Payload
         var sparkplugPayload = new Payload();
         sparkplugPayload.MergeFrom(payloadBytes);
 
-        var metrics = sparkplugPayload.Metrics.ToDictionary(
-            m => m.Name,
-            m => m.Value
-        );
+        // Extract metrics (if any), else just print raw data
+        var metrics = sparkplugPayload.Metrics
+            .ToDictionary(
+                m => m.Name,
+                m =>
+                {
+                    // Extract the value, handling oneof
+                    return m.ValueCase switch
+                    {
+                        Metric.ValueOneofCase.IntValue => m.IntValue,
+                        Metric.ValueOneofCase.LongValue => m.LongValue,
+                        Metric.ValueOneofCase.FloatValue => m.FloatValue,
+                        Metric.ValueOneofCase.DoubleValue => m.DoubleValue,
+                        Metric.ValueOneofCase.BooleanValue => m.BooleanValue,
+                        Metric.ValueOneofCase.StringValue => m.StringValue,
+                        Metric.ValueOneofCase.BytesValue => m.BytesValue.ToStringUtf8(),
+                        // Add handling for dataset/template/extension if needed
+                        _ => null
+                    };
+                }
+            );
 
         var unsTopic = $"UNS/{e.ApplicationMessage.Topic.Replace("/", "_")}";
         var unsPayload = JsonSerializer.Serialize(metrics);
@@ -46,8 +61,8 @@ client.ApplicationMessageReceivedAsync += async e =>
         var unsMessage = new MqttApplicationMessageBuilder()
             .WithTopic(unsTopic)
             .WithPayload(unsPayload)
-            .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
-	    .WithRetainFlag()
+            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+            .WithRetainFlag()
             .Build();
 
         await client.PublishAsync(unsMessage);
@@ -59,11 +74,10 @@ client.ApplicationMessageReceivedAsync += async e =>
     }
 };
 
-
 await client.ConnectAsync(options);
 
 await client.SubscribeAsync(new MqttClientSubscribeOptionsBuilder()
-    .WithTopicFilter("spBv1.0/+/+/NDATA")
+    .WithTopicFilter("spBv1.0/+/+/+")
     .Build());
 
 Console.WriteLine("Bridge is running. Press Ctrl+C to exit.");
