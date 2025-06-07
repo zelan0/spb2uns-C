@@ -34,15 +34,13 @@ client.ApplicationMessageReceivedAsync += async e =>
         sparkplugPayload.MergeFrom(payloadBytes);
 
         // Extract metrics (if any), else just print raw data
-        var metrics = sparkplugPayload.Metrics
-            .ToDictionary(
+        var metrics = sparkplugPayload.Metrics != null
+            ? sparkplugPayload.Metrics.ToDictionary(
                 m => m.Name,
                 m =>
-                {
-                    // Extract the value, handling oneof
-                    return m.ValueCase switch
+                    m.ValueCase switch
                     {
-                        Metric.ValueOneofCase.IntValue => m.IntValue,
+                        Metric.ValueOneofCase.IntValue => (object)m.IntValue,
                         Metric.ValueOneofCase.LongValue => m.LongValue,
                         Metric.ValueOneofCase.FloatValue => m.FloatValue,
                         Metric.ValueOneofCase.DoubleValue => m.DoubleValue,
@@ -51,9 +49,9 @@ client.ApplicationMessageReceivedAsync += async e =>
                         Metric.ValueOneofCase.BytesValue => m.BytesValue.ToStringUtf8(),
                         // Add handling for dataset/template/extension if needed
                         _ => null
-                    };
-                }
-            );
+                    }
+            )
+            : new System.Collections.Generic.Dictionary<string, object>();
 
         var unsTopic = $"UNS/{e.ApplicationMessage.Topic.Replace("/", "_")}";
         var unsPayload = JsonSerializer.Serialize(metrics);

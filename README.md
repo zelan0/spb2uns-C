@@ -3,9 +3,9 @@
 This project runs a complete environment for prototyping Sparkplug B to UNS (Unified Namespace) translation using Ignition, RabbitMQ (with MQTT plugin), and a .NET bridge container.
 
 Build the Docker container
-docker-compose build bridge
-docker-compose up rabbitmq ignition
-docker-compose up bridge
+docker compose build bridge
+docker compose up rabbitmq ignition
+docker compose up bridge
 
 
 docker-compose up --build bridge
@@ -53,7 +53,7 @@ mosquitto_pub -h localhost -p 1883 -u user -P password -t "test" -m "Hello from 
 Old containers obtaining ports
 Killing old containers
 docker ps -a
-docker-compose down
+docker compose down
 docker network ls
 docker ps -aq | xargs sudo docker stop
 docker ps -aq | xargs sudo docker rm
@@ -73,7 +73,7 @@ sudo kill <pid>
     - [Ignition UI](http://localhost:8088)
     - [RabbitMQ UI](http://localhost:15672) (user/password)
 3. The bridge container will listen for Sparkplug B messages and republish them in UNS format to RabbitMQ MQTT.
-
+4. https://sparkplug.eclipse.org/
 ## GitHub Setup
 
 See instructions in this README for pushing to your own repo.
