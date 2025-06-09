@@ -114,3 +114,6 @@ services:
 
 docker-compose down ignition
 docker-compose up -d ignition
+
+Sparkplug B v2
+https://github.com/eclipse-tahu/tahu/blob/master/sparkplug_b/sparkplug_b.proto
