@@ -54,6 +54,8 @@ docker logs <container_name> 2>&1 | grep -i mqtt
 Test MQTT
 mosquitto_sub -h localhost -p 1883 -u user -P password -t "#" -v
 mosquitto_pub -h localhost -p 1883 -u user -P password -t "test" -m "Hello from pub"
+mosquitto_sub -h localhost -p 1883 -u user -P password -v -t "UNS/#"#"
+mosquitto_sub -h localhost -u user -P password -t "spBv1.0/#" -v | hexdump -C
 
 GC logs in ignition container
 docker exec -it <container_name> tail -f /var/log/ignition/gc.log

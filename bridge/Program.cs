@@ -76,6 +76,9 @@ await client.ConnectAsync(options);
 
 await client.SubscribeAsync(new MqttClientSubscribeOptionsBuilder()
     .WithTopicFilter("spBv1.0/+/+/+")
+    .WithTopicFilter("spBv2.0/+/+/+")
+    .WithTopicFilter("spBv2.2/+/+/+")
+    .WithTopicFilter("spBv3.0/+/+/+")
     .Build());
 
 Console.WriteLine("Bridge is running. Press Ctrl+C to exit.");
